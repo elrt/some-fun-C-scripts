@@ -1,17 +1,18 @@
+//3d cube:D by elliktronic
 #include <stdio.h>
 #include <math.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <signal.h>
 
-// Настройки программы
-#define WIDTH 40              // Ширина экрана
-#define HEIGHT 20             // Высота экрана
+
+#define WIDTH 40             
+#define HEIGHT 20             
 #define PI 3.14159265358979323846
-#define DEFAULT_DISTANCE 100.0  // Дистанция камеры
-#define ROTATION_SPEED 0.03   // Базовая скорость вращения
-#define FRAME_DELAY 30000     // Задержка между кадрами (в микросекундах)
-#define DRAW_CHAR '#'         // Символ для отрисовки куба
+#define DEFAULT_DISTANCE 100.0  
+#define ROTATION_SPEED 0.03   
+#define FRAME_DELAY 30000    
+#define DRAW_CHAR '#'        
 
 volatile sig_atomic_t keep_running = 1;
 
@@ -26,43 +27,43 @@ void clear_screen() {
 typedef struct { float x, y, z; } Point3D;
 typedef struct { int x, y; } Point2D;
 
-// Вершины куба (центрированы в начале координат)
+
 Point3D cube[] = {
     {-1,-1,-1}, {1,-1,-1}, {1,1,-1}, {-1,1,-1},
     {-1,-1,1}, {1,-1,1}, {1,1,1}, {-1,1,1}
 };
 
-// Ребра куба (соединения между вершинами)
+
 int edges[12][2] = {
-    {0,1}, {1,2}, {2,3}, {3,0},  // Нижняя грань
-    {4,5}, {5,6}, {6,7}, {7,4},  // Верхняя грань
-    {0,4}, {1,5}, {2,6}, {3,7}   // Боковые ребра
+    {0,1}, {1,2}, {2,3}, {3,0}, 
+    {4,5}, {5,6}, {6,7}, {7,4},  
+    {0,4}, {1,5}, {2,6}, {3,7}   
 };
 
 Point2D project(Point3D p, float angleX, float angleY, float angleZ, float distance) {
-    // Поворот вокруг оси X
+
     float cosX = cos(angleX), sinX = sin(angleX);
     float y = p.y * cosX - p.z * sinX;
     float z = p.y * sinX + p.z * cosX;
     p.y = y; p.z = z;
     
-    // Поворот вокруг оси Y (исправлено для правильной ориентации)
+  
     float cosY = cos(angleY), sinY = sin(angleY);
     float x = p.x * cosY + p.z * sinY;
     z = -p.x * sinY + p.z * cosY;
     p.x = x; p.z = z;
     
-    // Поворот вокруг оси Z
+
     float cosZ = cos(angleZ), sinZ = sin(angleZ);
     x = p.x * cosZ - p.y * sinZ;
     y = p.x * sinZ + p.y * cosZ;
     p.x = x; p.y = y;
     
-    // Перспективная проекция с центрированием
+
     float factor = distance / (distance + p.z);
     return (Point2D){
-        (int)(WIDTH/2 + p.x * factor * WIDTH/5),   // Уменьшен масштаб (WIDTH/5 вместо WIDTH/4)
-        (int)(HEIGHT/2 - p.y * factor * HEIGHT/5)  // Центрирование по вертикали
+        (int)(WIDTH/2 + p.x * factor * WIDTH/5),  
+        (int)(HEIGHT/2 - p.y * factor * HEIGHT/5) 
     };
 }
 
@@ -93,25 +94,24 @@ int main() {
     printf("  - Размеры экрана: %dx%d\n", WIDTH, HEIGHT);
     printf("  - Используемый символ: '%c'\n", DRAW_CHAR);
     printf("\nЗагрузка 3D куба...\n");
-    usleep(1000000); // Пауза 1 секунда перед началом
+    usleep(1000000); 
     
     while(keep_running) {
         clear_screen();
         char buffer[HEIGHT][WIDTH];
         
-        // Очистка буфера
+
         for(int y = 0; y < HEIGHT; y++)
             for(int x = 0; x < WIDTH; x++)
                 buffer[y][x] = ' ';
         
-        // Отрисовка ребер куба
+       
         for(int i = 0; i < 12; i++) {
             Point2D p1 = project(cube[edges[i][0]], angleX, angleY, angleZ, distance);
             Point2D p2 = project(cube[edges[i][1]], angleX, angleY, angleZ, distance);
             draw_line(p1, p2, buffer);
         }
-        
-        // Вывод буфера на экран
+
         for(int y = 0; y < HEIGHT; y++) {
             for(int x = 0; x < WIDTH; x++) {
                 putchar(buffer[y][x]);
@@ -119,7 +119,7 @@ int main() {
             putchar('\n');
         }
         
-        // Обновление углов вращения
+
         angleX += ROTATION_SPEED * 0.7;
         angleY += ROTATION_SPEED;
         angleZ += ROTATION_SPEED * 0.3;
